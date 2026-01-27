@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Detail - NgulikPC</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            margin-top: 3rem;
+        }
+
+        .main-image {
+            width: 100%;
+            height: 500px;
+            background: #1f1f23;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            object-fit: contain;
+        }
+
+        .breadcrumb {
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .p-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 1rem;
+        }
+
+        .p-price {
+            font-size: 2rem;
+            color: var(--accent);
+            font-weight: 700;
+            margin-bottom: 2rem;
+        }
+
+        .p-desc {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+
+        .specs-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+        }
+
+        .specs-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .specs-table td:first-child {
+            color: var(--text-muted);
+            width: 150px;
+        }
+
+        @media (max-width: 768px) {
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="container flex justify-between items-center">
+            <a href="index.html" class="logo">NgulikPC</a>
+            <nav>
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="products.html" class="nav-link">Shop</a>
+                <a href="#" class="nav-link">Cart (0)</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="detail-grid">
+            <div class="p-gallery">
+                <img src="" id="p-image" class="main-image">
+            </div>
+            <div class="p-info">
+                <div class="breadcrumb">Store / <span id="p-category">...</span></div>
+                <h1 class="p-title" id="p-name">Loading...</h1>
+                <div class="p-price" id="p-price">...</div>
+                <p class="p-desc" id="p-desc">...</p>
+
+                <button class="btn btn-primary" style="width: auto; padding: 1rem 3rem;">Buy Now</button>
+                <button class="btn" style="border: 1px solid var(--border); margin-left: 10px;">Add to Cart</button>
+
+                <h3 style="margin-top: 3rem;">Specifications</h3>
+                <table class="specs-table" id="p-specs">
+                    <!-- Specs injected here -->
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const slug = urlParams.get('slug');
+            if (!slug) return;
+
+            const product = await fetchAPI(`/catalog/products/read_one?slug=${slug}`);
+            if (!product) return;
+
+            document.title = product.name + " - NgulikPC";
+            document.getElementById('p-name').innerText = product.name;
+            document.getElementById('p-category').innerText = product.category_name;
+            document.getElementById('p-price').innerText = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(product.price);
+            document.getElementById('p-desc').innerHTML = product.description;
+
+            // Image
+            if (product.images && product.images.length > 0) {
+                // document.getElementById('p-image').src = product.images[0];
+            } else {
+                document.getElementById('p-image').src = 'assets/images/placeholder_gpu.png';
+            }
+
+            // Specs
+            const specsBody = document.getElementById('p-specs');
+            if (product.specs) {
+                for (const [key, value] of Object.entries(product.specs)) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${key.replace('_', ' ').toUpperCase()}</td><td>${value}</td>`;
+                    specsBody.appendChild(tr);
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

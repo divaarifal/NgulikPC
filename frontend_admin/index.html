@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - NgulikPC</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../frontend_main/css/style.css">
+</head>
+
+<body>
+    <header>
+        <div class="container flex justify-between items-center">
+            <a href="#" class="logo">NgulikPC Admin</a>
+            <nav>
+                <a href="#" class="nav-link">Products</a>
+                <a href="#" class="nav-link">Orders</a>
+                <a href="#" class="nav-link"
+                    onclick="localStorage.clear(); window.location.href='../frontend_main/index.html'">Logout</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container" style="margin-top: 2rem;">
+        <h1>Product Management</h1>
+        <div
+            style="background: var(--card-bg); padding: 2rem; border-radius: 12px; border: 1px solid var(--border); margin-top: 1rem;">
+            <h3>Add New Product (Simulation)</h3>
+            <p>To fully implement this, we would need a file upload service or manual JSON editing. For now, use the
+                seed script or direct DB access.</p>
+        </div>
+    </main>
+</body>
+
+</html>

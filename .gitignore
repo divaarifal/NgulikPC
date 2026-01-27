@@ -1,0 +1,14 @@
+# System files
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+
+# Environment variables
+.env
+config.php
+
+# Dependency directories (future proofing)
+vendor/
+node_modules/

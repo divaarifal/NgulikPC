@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warehouse - NgulikPC</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../frontend_main/css/style.css">
+</head>
+
+<body>
+    <header>
+        <div class="container flex justify-between items-center">
+            <a href="#" class="logo">NgulikPC Warehouse</a>
+            <nav>
+                <a href="#" class="nav-link"
+                    onclick="localStorage.clear(); window.location.href='../frontend_main/index.html'">Logout</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container" style="margin-top: 2rem;">
+        <h1>Stock Management</h1>
+        <div id="stock-list" class="grid product-grid">
+            <!-- Loaded via JS -->
+        </div>
+    </main>
+
+    <script src="../frontend_main/js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Load products from Catalog to get names
+            const productsData = await fetchAPI('/catalog/products/read');
+            const container = document.getElementById('stock-list');
+
+            if (productsData && productsData.records) {
+                for (const p of productsData.records) {
+                    // Fetch stock for each
+                    let stock = 0;
+                    try {
+                        const sData = await fetchAPI(`/inventory/stock/read?product_id=${p.id}`);
+                        if (sData) stock = sData.available;
+                    } catch (e) { }
+
+                    const div = document.createElement('div');
+                    div.className = 'product-card';
+                    div.style.padding = '1rem';
+                    div.innerHTML = `
+                        <h3>${p.name}</h3>
+                        <p style="color: var(--text-muted);">ID: ${p.id}</p>
+                        <div style="font-size: 2rem; font-weight: bold; margin: 1rem 0;">${stock}</div>
+                        <p>Available Units</p>
+                        <button class="btn btn-primary" onclick="updateStock(${p.id})">Update Stock</button>
+                    `;
+                    container.appendChild(div);
+                }
+            }
+        });
+
+        async function updateStock(id) {
+            const newQty = prompt("Enter new total quantity:");
+            if (newQty) {
+                await fetch(`${API_URL}/inventory/stock/update`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ product_id: id, quantity: parseInt(newQty) })
+                });
+                alert('Stock Updated');
+                location.reload();
+            }
+        }
+    </script>
+</body>
+
+</html>
