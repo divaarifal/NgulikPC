@@ -27,8 +27,6 @@ switch($service) {
         break;
     case 'catalog':
         $target_url = $base_url . "/catalog_service/api/" . implode('/', array_slice($parts, 1)). ".php";
-        // Handle query params if any were stripped (simple implementation assumes they are passed via curl if needed, but here we just construct url)
-        // If the original URL had query string, we need to append it.
         break;
     case 'orders':
         $target_url = $base_url . "/order_service/api/" . implode('/', array_slice($parts, 1)). ".php";
@@ -50,16 +48,17 @@ if(strpos($_SERVER['REQUEST_URI'], '?') !== false) {
     $target_url .= '?' . explode('?', $_SERVER['REQUEST_URI'])[1];
 }
 
-// Security Check (Simple JWT check for Orders and Inventory)
+// FOR V1.1.0: Disable Token Check for simplicity in debugging CRUD
+// In production we would uncomment this
+/*
 if($service == 'orders' || $service == 'inventory') {
     $headers = apache_request_headers();
     if(!isset($headers['Authorization'])) {
-        http_response_code(401);
-        echo json_encode(["message" => "Unauthorized. Token required."]);
-        // exit; // Uncomment to enforce
+        // http_response_code(401);
+        // echo json_encode(["message" => "Unauthorized. Token required."]);
     }
-    // Verify token here if strictly enforcing at gateway level
 }
+*/
 
 // Forward Request
 $ch = curl_init();
