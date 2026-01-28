@@ -11,8 +11,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 }
 
 $request_uri = $_SERVER['REQUEST_URI'];
+// Remove Query String for path parsing
+$clean_uri = strtok($request_uri, '?');
+
 // remove /NgulikPC/api_gateway
-$path = str_replace('/NgulikPC/api_gateway', '', $request_uri);
+$path = str_replace('/NgulikPC/api_gateway', '', $clean_uri);
+// FIX CASE SENSITIVITY
+if($path == $clean_uri) {
+    $path = str_ireplace('/NgulikPC/api_gateway', '', $clean_uri);
+}
+
 $parts = explode('/', trim($path, '/'));
 
 $service = isset($parts[0]) ? $parts[0] : '';

@@ -3,75 +3,95 @@ session_start();
 include 'includes/api_client.php';
 $api = new ApiClient();
 
-// Fetch Data Server-Side
 $banners = $api->get('/cms/banners/read');
 $categories = $api->get('/catalog/categories/read');
-$newArrivals = $api->get('/catalog/products/read'); // Limit in real app
+$newArrivals = $api->get('/catalog/products/read');
 
 include 'includes/header.php';
 ?>
 
-<!-- Hero -->
-<section class="hero container glass-panel animate-up">
-    <h1>Build Your <br><span style="color:white; -webkit-text-fill-color:white;">Dream Machine</span></h1>
-    <p>Premium Components for High-End Gaming & Workstations</p>
-    <a href="products.php" class="btn">Shop Now <i class="fas fa-arrow-right"></i></a>
-
-    <!-- Simple Slider Placeholder (Real implementation would use SwiperJS or equiv) -->
-    <div style="margin-top: 3rem; overflow: hidden; border-radius: 20px;">
-        <?php if($banners && isset($banners['records']) && count($banners['records']) > 0): ?>
-            <?php $firstBanner = $banners['records'][0]; ?>
-            <img src="<?php echo $firstBanner['image_url']; ?>" style="width: 100%; max-height: 400px; object-fit: cover;" alt="Banner">
-        <?php else: ?>
-            <div style="height: 300px; background: #24243e; display: flex; align-items: center; justify-content: center;">
-                <h2>Latest Tech Arrived</h2>
+<!-- Hero Section -->
+<section class="relative bg-white overflow-hidden">
+    <div class="absolute inset-0 bg-slate-50/50"></div>
+    <div class="container mx-auto px-6 py-20 relative z-10 flex flex-col md:flex-row items-center">
+        <div class="w-full md:w-1/2 mb-10 md:mb-0">
+            <span class="inline-block py-1 px-3 rounded-full bg-blue-100 text-blue-600 text-xs font-bold uppercase tracking-wide mb-4">New Season</span>
+            <h1 class="text-5xl md:text-6xl font-bold text-slate-900 leading-tight mb-6">
+                Build Your <br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Dream Machine</span>
+            </h1>
+            <p class="text-lg text-slate-500 mb-8 max-w-lg">Premium components for high-performance gaming and professional workstations. Experience power like never before.</p>
+            <div class="flex gap-4">
+                <a href="products.php" class="px-8 py-3 bg-primary text-white rounded-full font-bold shadow-lg shadow-red-500/30 hover:bg-red-600 transition">Shop Now</a>
+                <a href="#featured" class="px-8 py-3 bg-white text-slate-700 border border-slate-200 rounded-full font-bold hover:bg-slate-50 transition">Explore</a>
             </div>
-        <?php endif; ?>
+        </div>
+        <div class="w-full md:w-1/2 relative">
+             <!-- Placeholder for Hero Image/Slider -->
+             <?php if($banners && isset($banners['records']) && count($banners['records']) > 0): ?>
+                <img src="<?php echo $banners['records'][0]['image_url']; ?>" class="rounded-3xl shadow-2xl transform md:rotate-3 hover:rotate-0 transition duration-500">
+             <?php else: ?>
+                <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl h-[400px] flex items-center justify-center text-white shadow-2xl">
+                    <h2 class="text-2xl font-bold">Latest Tech Arrived</h2>
+                </div>
+             <?php endif; ?>
+        </div>
     </div>
 </section>
 
 <!-- Categories -->
-<section class="container mt-4 animate-up delay-1">
-    <h2 class="text-center" style="margin-bottom: 2rem; font-size: 2.5rem;">Browse Categories</h2>
-    <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));">
-        <?php if($categories && isset($categories['records'])): ?>
-            <?php foreach($categories['records'] as $cat): ?>
-                <a href="products.php?category=<?php echo $cat['slug']; ?>" class="glass-panel" style="padding: 2rem; text-align: center; display: block; border: 1px solid var(--glass-border); transition: 0.3s;">
-                    <i class="fas <?php echo $cat['icon']; ?>" style="font-size: 3rem; color: var(--secondary); margin-bottom: 1rem;"></i>
-                    <h3 style="font-size: 1.2rem;"><?php echo $cat['name']; ?></h3>
-                </a>
-            <?php endforeach; ?>
-        <?php endif; ?>
+<section class="py-20 bg-slate-50">
+    <div class="container mx-auto px-6">
+        <h2 class="text-3xl font-bold text-slate-800 text-center mb-12">Browse by Category</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+            <?php if($categories && isset($categories['records'])): ?>
+                <?php foreach($categories['records'] as $cat): ?>
+                    <a href="products.php?category=<?php echo $cat['slug']; ?>" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center hover:shadow-lg hover:-translate-y-1 transition duration-300 group">
+                        <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition text-secondary">
+                            <i class="fas <?php echo $cat['icon']; ?> text-2xl"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-700 group-hover:text-primary transition"><?php echo $cat['name']; ?></h3>
+                    </a>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
     </div>
 </section>
 
-<!-- Featured Products -->
-<section class="container mt-4 animate-up delay-2">
-    <div class="flex justify-between items-center" style="margin-bottom: 2rem;">
-        <h2 style="font-size: 2.5rem;">New Arrivals</h2>
-        <a href="products.php" style="color: var(--primary); font-weight: 700;">View All</a>
-    </div>
-    
-    <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
-        <?php if($newArrivals && isset($newArrivals['records'])): ?>
-            <?php 
-                // Show only first 4
-                $count = 0;
-                foreach($newArrivals['records'] as $p): 
-                if($count >= 4) break;
-                $count++;
-            ?>
-                <div class="card glass-panel">
-                    <img src="<?php echo (isset($p['images'][0]) ? $p['images'][0] : 'assets/images/placeholder_gpu.png'); ?>" alt="<?php echo $p['name']; ?>">
-                    <div class="card-body">
-                        <div style="color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase;"><?php echo $p['category_name']; ?></div>
-                        <h3 class="card-title"><?php echo $p['name']; ?></h3>
-                        <div class="card-price">Rp <?php echo number_format($p['price'], 0, ',', '.'); ?></div>
-                        <a href="product-detail.php?slug=<?php echo $p['slug']; ?>" class="btn" style="width: 100%; margin-top: 1rem; display: block; text-align: center;">View Details</a>
+<!-- Featured -->
+<section id="featured" class="py-20 bg-white">
+    <div class="container mx-auto px-6">
+        <div class="flex justify-between items-end mb-12">
+            <div>
+                <h2 class="text-3xl font-bold text-slate-800">New Arrivals</h2>
+                <p class="text-slate-500 mt-2">Check out the latest drops.</p>
+            </div>
+            <a href="products.php" class="text-primary font-bold hover:text-red-700 transition">View All <i class="fas fa-arrow-right ml-1"></i></a>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+             <?php if($newArrivals && isset($newArrivals['records'])): ?>
+                <?php 
+                    $count = 0;
+                    foreach($newArrivals['records'] as $p): 
+                    if($count >= 4) break;
+                    $count++;
+                ?>
+                <div class="group">
+                    <div class="bg-slate-50 rounded-2xl p-4 mb-4 relative overflow-hidden">
+                        <img src="<?php echo (isset($p['images'][0]) ? $p['images'][0] : 'assets/images/placeholder_gpu.png'); ?>" class="w-full h-48 object-contain mix-blend-multiply group-hover:scale-110 transition duration-500">
+                    </div>
+                    <div class="px-2">
+                        <h3 class="font-bold text-slate-800 truncate"><?php echo $p['name']; ?></h3>
+                        <p class="text-slate-500 text-sm mb-2"><?php echo $p['category_name']; ?></p>
+                        <div class="flex justify-between items-center bg-white">
+                             <span class="font-bold text-primary text-lg">Rp <?php echo number_format($p['price'], 0, ',', '.'); ?></span>
+                        </div>
                     </div>
                 </div>
-            <?php endforeach; ?>
-        <?php endif; ?>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
     </div>
 </section>
 

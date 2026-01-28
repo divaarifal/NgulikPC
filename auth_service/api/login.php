@@ -14,7 +14,7 @@ $db = $database->getConnection();
 $data = json_decode(file_get_contents("php://input"));
 
 if(!empty($data->email) && !empty($data->password)){
-    $query = "SELECT id, username, password_hash, role FROM users WHERE email = ? LIMIT 0,1";
+    $query = "SELECT id, username, email, avatar, password_hash, role FROM users WHERE email = ? LIMIT 0,1";
     $stmt = $db->prepare($query);
     $stmt->bindParam(1, $data->email);
     $stmt->execute();
@@ -39,6 +39,8 @@ if(!empty($data->email) && !empty($data->password)){
                     "user" => array(
                         "id" => $row['id'],
                         "username" => $row['username'],
+                        "email" => $row['email'],
+                        "avatar" => $row['avatar'],
                         "role" => $row['role']
                     )
                 )

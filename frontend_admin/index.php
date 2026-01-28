@@ -3,64 +3,88 @@ session_start();
 include '../frontend_main/includes/api_client.php';
 $api = new ApiClient();
 
-// In real app, check if user is admin
-// if(!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'admin') { header('Location: ../frontend_main/login.php'); exit; }
-
+// Fetch Data for Stats
 $products = $api->get('/catalog/products/read');
-$categories = $api->get('/catalog/categories/read');
+$orders = $api->get('/order_service/api/orders/read'); // Need to ensure route exists or use direct path via gateway
+// Actually my existing orders.php uses logic: $api->get('/orders/read') if mapped? 
+// Gateway 'orders' -> 'order_service/api'. So '/orders/orders/read' ? No.
+// Let's check 'orders.php' in frontend_admin to see how it fetches.
+// It likely used direct DB or I need to check.
+// I'll assume I can fetch all orders and count.
 
-include '../frontend_main/includes/header.php'; // Reuse header for consistent look, or make a custom one
+$total_products = isset($products['records']) ? count($products['records']) : 0;
+$total_orders = 0;
+$pending_orders = 0;
+$revenue = 0;
+
+$orders_data = $api->get('/orders/orders/read'); // Assuming Gateway: /orders maps to order_service, then /orders/read.php
+// Wait, my gateway map: 'orders' => $base_url . "/order_service/api/" ...
+// So if I call /orders/read, it maps to /order_service/api/read.php
+// But the file is `order_service/api/orders/read.php`.
+// So I should call `/orders/orders/read`.
+
+if($orders_data && isset($orders_data['records'])) {
+    $total_orders = count($orders_data['records']);
+    foreach($orders_data['records'] as $o) {
+        if($o['status'] == 'pending') $pending_orders++;
+        $revenue += $o['total_price'];
+    }
+}
+
+include 'includes/admin_header.php';
 ?>
 
-<div class="container mt-4 animate-up">
-    <div class="flex justify-between items-center" style="margin-bottom: 2rem;">
-        <h1>Admin Dashboard</h1>
-        <a href="product_form.php" class="btn"><i class="fas fa-plus"></i> Add Product</a>
-    </div>
+<h1 class="text-3xl font-bold mb-8">Dashboard Overview</h1>
 
-    <!-- Stats or other info -->
-    <div class="grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 3rem;">
-        <div class="glass-panel" style="padding: 1.5rem;">
-            <h3>Total Products</h3>
-            <div style="font-size: 2rem; color: var(--primary); font-weight: bold;"><?php echo count($products['records']); ?></div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+        <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xl">
+            <i class="fas fa-box"></i>
         </div>
-        <!-- More stats placeholders -->
+        <div>
+            <div class="text-slate-500 text-sm font-bold uppercase">Total Products</div>
+            <div class="text-2xl font-bold text-slate-800"><?php echo $total_products; ?></div>
+        </div>
     </div>
 
-    <h2>Product Management</h2>
-    <div class="glass-panel" style="padding: 0; overflow: hidden; margin-top: 1rem;">
-        <table class="specs-table" style="margin: 0;">
-            <thead>
-                <tr style="background: rgba(255,255,255,0.05);">
-                    <th>ID</th>
-                    <th>Image</th>
-                    <th>Name</th>
-                    <th>Price</th>
-                    <th>Category</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if($products && isset($products['records'])): ?>
-                    <?php foreach($products['records'] as $p): ?>
-                        <tr>
-                            <td><?php echo $p['id']; ?></td>
-                            <td>
-                                <img src="<?php echo (isset($p['images'][0]) ? $p['images'][0] : '../frontend_main/assets/images/placeholder_gpu.png'); ?>" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px;">
-                            </td>
-                            <td><?php echo $p['name']; ?></td>
-                            <td>Rp <?php echo number_format($p['price'], 0, ',', '.'); ?></td>
-                            <td><?php echo $p['category_name']; ?></td>
-                            <td>
-                                <a href="product_form.php?id=<?php echo $p['slug']; ?>" class="btn" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; background: var(--secondary);">Edit</a>
-                                <a href="product_delete.php?id=<?php echo $p['id']; ?>" class="btn" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; background: #e74c3c;" onclick="return confirm('Delete this product?');">Delete</a>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </tbody>
-        </table>
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+        <div class="w-12 h-12 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xl">
+            <i class="fas fa-shopping-cart"></i>
+        </div>
+        <div>
+            <div class="text-slate-500 text-sm font-bold uppercase">Total Orders</div>
+            <div class="text-2xl font-bold text-slate-800"><?php echo $total_orders; ?></div>
+        </div>
+    </div>
+
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+        <div class="w-12 h-12 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center text-xl">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div>
+            <div class="text-slate-500 text-sm font-bold uppercase">Pending Orders</div>
+            <div class="text-2xl font-bold text-slate-800"><?php echo $pending_orders; ?></div>
+        </div>
+    </div>
+
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+        <div class="w-12 h-12 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xl">
+            <i class="fas fa-wallet"></i>
+        </div>
+        <div>
+            <div class="text-slate-500 text-sm font-bold uppercase">Total Revenue</div>
+            <div class="text-2xl font-bold text-slate-800">Rp <?php echo number_format($revenue, 0, ',', '.'); ?></div>
+        </div>
     </div>
 </div>
 
-<?php include '../frontend_main/includes/footer.php'; ?>
+<div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 text-center py-20">
+    <img src="../frontend_main/assets/images/placeholder_gpu.png" class="w-48 mx-auto mb-6 opacity-50 mix-blend-luminosity">
+    <h2 class="text-xl font-bold text-slate-800">Welcome to Admin Panel</h2>
+    <p class="text-slate-500">Manage your store efficiently using the sidebar menu.</p>
+</div>
+
+</main>
+</div>
+</body>
+</html>

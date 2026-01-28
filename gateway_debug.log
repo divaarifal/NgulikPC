@@ -1,0 +1,6 @@
+2026-01-28 08:35:54 - URI: /NgulikPC/api_gateway/inventory/stock/read?product_id=1 - Path: /inventory/stock/read?product_id=1
+2026-01-28 08:35:54 - Target: http://localhost/NgulikPC/inventory_service/api/stock/read?product_id=1.php?product_id=1
+2026-01-28 08:35:54 - URI: /NgulikPC/api_gateway/inventory/stock/update - Path: /inventory/stock/update
+2026-01-28 08:35:54 - Target: http://localhost/NgulikPC/inventory_service/api/stock/update.php
+2026-01-28 08:35:54 - URI: /NgulikPC/api_gateway/inventory/stock/read?product_id=1 - Path: /inventory/stock/read?product_id=1
+2026-01-28 08:35:54 - Target: http://localhost/NgulikPC/inventory_service/api/stock/read?product_id=1.php?product_id=1

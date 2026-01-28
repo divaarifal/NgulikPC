@@ -1,0 +1,15 @@
+<?php
+// ... (Previous Router code)
+// Add case for address
+// IN API GATEWAY INDEX.PHP
+
+// Since I use directory mapping:
+// /auth/api/... 
+// URL: /auth/addresses/read
+// Maps to: /auth_service/api/addresses/read.php
+// My Gateway logic:
+// $target_url = $base_url . "/auth_service/api/" . implode('/', array_slice($parts, 1)) . ".php";
+// So /auth/addresses/read -> /auth_service/api/addresses/read.php
+// It should work automatically!
+
+?>

@@ -17,13 +17,20 @@ class ApiClient {
         return json_decode($response, true);
     }
 
-    public function post($endpoint, $data, $token = null) {
+    public function post($endpoint, $data, $token = null, $isMultipart = false) {
         $ch = curl_init($this->api_url . $endpoint);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
         
-        $headers = ['Content-Type: application/json'];
+        $headers = [];
+        if($isMultipart) {
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+            // Content-Type: multipart/form-data is set automatically
+        } else {
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+            $headers[] = 'Content-Type: application/json';
+        }
+        
         if ($token) {
             $headers[] = "Authorization: " . $token;
         }
