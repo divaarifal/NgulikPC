@@ -52,7 +52,6 @@ include 'includes/header.php';
                         <?php foreach($heroBanners as $bannerPath): ?>
                             <div class="w-full h-full flex-shrink-0 relative">
                                 <img src="<?php echo $bannerPath; ?>" class="w-full h-full object-cover">
-                                <!-- Optional Overlay for text visibility if needed -->
                                 <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
                             </div>
                         <?php endforeach; ?>

@@ -5,9 +5,12 @@ $api = new ApiClient();
 
 $category_slug = isset($_GET['category']) ? $_GET['category'] : '';
 $search = isset($_GET['search']) ? $_GET['search'] : '';
+$sort = isset($_GET['sort']) ? $_GET['sort'] : '';
+
 $query = "?";
 if($category_slug) $query .= "category=" . $category_slug . "&";
-if($search) $query .= "search=" . $search;
+if($search) $query .= "search=" . $search . "&";
+if($sort) $query .= "sort=" . $sort;
 
 $products = $api->get('/catalog/products/read' . $query);
 $categories = $api->get('/catalog/categories/read');
@@ -87,8 +90,25 @@ include 'includes/header.php';
     <div class="flex-1">
         <div class="flex justify-between items-center mb-8">
             <h1 class="text-3xl font-bold text-slate-800">Shop Products</h1>
-            <span class="text-slate-400 text-sm"><?php echo isset($products['records']) ? count($products['records']) : 0; ?> Items</span>
+            <div class="flex items-center gap-4">
+                <span class="text-slate-400 text-sm hidden md:inline"><?php echo isset($products['records']) ? count($products['records']) : 0; ?> Items</span>
+                <select onchange="applySort(this.value)" class="border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-600 focus:outline-none focus:border-primary bg-white">
+                    <option value="newest" <?php echo (!isset($_GET['sort']) || $_GET['sort'] == 'newest') ? 'selected' : ''; ?>>Newest Arrival</option>
+                    <option value="name_asc" <?php echo (isset($_GET['sort']) && $_GET['sort'] == 'name_asc') ? 'selected' : ''; ?>>Name (A-Z)</option>
+                    <option value="name_desc" <?php echo (isset($_GET['sort']) && $_GET['sort'] == 'name_desc') ? 'selected' : ''; ?>>Name (Z-A)</option>
+                    <option value="price_asc" <?php echo (isset($_GET['sort']) && $_GET['sort'] == 'price_asc') ? 'selected' : ''; ?>>Price (Low - High)</option>
+                    <option value="price_desc" <?php echo (isset($_GET['sort']) && $_GET['sort'] == 'price_desc') ? 'selected' : ''; ?>>Price (High - Low)</option>
+                </select>
+            </div>
         </div>
+
+        <script>
+        function applySort(sortValue) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('sort', sortValue);
+            window.location.href = url.toString();
+        }
+        </script>
 
         <?php if($products && isset($products['records']) && count($products['records']) > 0): ?>
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">

@@ -34,7 +34,25 @@ if(!empty($search)){
     $params[] = "%{$search}%";
 }
 
-$query .= " ORDER BY p.created_at DESC";
+$sort = isset($_GET['sort']) ? $_GET['sort'] : "newest"; // newest, name_asc, name_desc, price_asc, price_desc
+
+switch($sort) {
+    case 'name_asc':
+        $query .= " ORDER BY p.name ASC";
+        break;
+    case 'name_desc':
+        $query .= " ORDER BY p.name DESC";
+        break;
+    case 'price_asc':
+        $query .= " ORDER BY p.price ASC";
+        break;
+    case 'price_desc':
+        $query .= " ORDER BY p.price DESC";
+        break;
+    default: // newest
+        $query .= " ORDER BY p.created_at DESC";
+        break;
+}
 
 $stmt = $db->prepare($query);
 $stmt->execute($params);

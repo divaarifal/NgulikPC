@@ -1,28 +1,45 @@
 <?php
 session_start();
-include '../frontend_main/includes/api_client.php';
-$api = new ApiClient();
+// Direct Database Connection to Bypass API Gateway Issues
+include '../order_service/config/database.php';
+
+$logFile = 'order_debug.log';
 
 if(isset($_GET['id']) && isset($_GET['status'])) {
-    $payload = [
-        'order_id' => $_GET['id'],
-        'status' => $_GET['status']
-    ];
+    $order_id = $_GET['id'];
+    $status = $_GET['status'];
     
-    // Call Order Service
-    // Route: /orders/orders/update_status
-    // Assuming gateway maps /orders -> order_service
-    $result = $api->post('/orders/orders/update_status', $payload);
-    
+    // LOGGING START
+    $logMsg = date('Y-m-d H:i:s') . " - ATTEMPT Direct Update Order #$order_id to $status\n";
+    file_put_contents($logFile, $logMsg, FILE_APPEND);
 
-    
-    if(isset($result['message']) && $result['message'] == "Order status updated.") {
-        header('Location: orders.php');
-        exit;
-    } else {
-        echo "Error: ";
-        print_r($result);
-        echo "<br><a href='orders.php'>Back</a>";
+    try {
+        $database = new Database();
+        $db = $database->getConnection();
+        
+        $query = "UPDATE orders SET status = :status WHERE id = :id";
+        $stmt = $db->prepare($query);
+        $stmt->bindParam(":status", $status);
+        $stmt->bindParam(":id", $order_id);
+        
+        if($stmt->execute()) {
+             $logMsg = date('Y-m-d H:i:s') . " - SUCCESS Direct Update\n";
+             file_put_contents($logFile, $logMsg, FILE_APPEND);
+             
+             // Redirect with Cache Bust
+             header('Location: orders.php?t=' . time() . '&success=Status+Updated');
+             exit;
+        } else {
+             $err = implode(" ", $stmt->errorInfo());
+             $logMsg = date('Y-m-d H:i:s') . " - FAIL Execute: $err\n";
+             file_put_contents($logFile, $logMsg, FILE_APPEND);
+             echo "Database Execute Error: $err <br><a href='orders.php'>Back</a>";
+             exit;
+        }
+    } catch(Exception $e) {
+        $logMsg = date('Y-m-d H:i:s') . " - EXCEPTION: " . $e->getMessage() . "\n";
+        file_put_contents($logFile, $logMsg, FILE_APPEND);
+        echo "Exception: " . $e->getMessage() . "<br><a href='orders.php'>Back</a>";
         exit;
     }
 }

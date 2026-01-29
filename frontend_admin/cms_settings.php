@@ -7,33 +7,50 @@ $message = "";
 
 // Handle Update
 // Handle Update
+// Handle Update
 if($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $settings = [
-        'site_title' => $_POST['site_title'],
-        'header_text' => $_POST['header_text'],
-        'footer_text' => $_POST['footer_text']
-    ];
+    // 1. Handle File Uploads Locally
+    $bannerPaths = [];
+    $targetDir = "../frontend_main/assets/uploads/banners/";
+    if(!is_dir($targetDir)) mkdir($targetDir, 0777, true);
 
-    // Handle File Uploads (3 Slots)
     for($i=1; $i<=3; $i++) {
         $inputName = 'banner_image_' . $i;
         $keyName = 'hero_banner_' . $i;
         
         if(isset($_FILES[$inputName]) && $_FILES[$inputName]['error'] == 0) {
-            $file = new CURLFile($_FILES[$inputName]['tmp_name'], $_FILES[$inputName]['type'], $_FILES[$inputName]['name']);
-            $upload_res = $api->post('/cms/banners/upload', ['banner_image' => $file], null, true);
+            $fileExt = strtolower(pathinfo($_FILES[$inputName]['name'], PATHINFO_EXTENSION));
+            $fileName = "banner_" . $i . "_" . time() . "." . $fileExt;
+            $targetFile = $targetDir . $fileName;
             
-            if(isset($upload_res['path'])) {
-                $settings[$keyName] = $upload_res['path'];
+            if(move_uploaded_file($_FILES[$inputName]['tmp_name'], $targetFile)) {
+                // Success: Path relative to frontend_main
+                $bannerPaths[$keyName] = "assets/uploads/banners/" . $fileName;
             }
         }
     }
+
+    // 2. Prepare Settings Array
+    $settings = [
+        'site_title' => $_POST['site_title'],
+        'header_text' => $_POST['header_text'],
+        'footer_text' => $_POST['footer_text']
+    ];
     
+    // Merge new banner paths
+    foreach($bannerPaths as $k => $v) {
+        $settings[$k] = $v;
+    }
+
+    // 3. Call Update API (Text Data is fine via API)
+    // We can still use the API for the text updates to keep it somewhat clean, 
+    // or we could use direct DB. API is fine for small text payloads.
     $res = $api->post('/cms/settings/update', $settings); 
+    
     if(isset($res['message']) && $res['message'] == "Settings updated.") {
         $message = "Settings updated successfully.";
     } else {
-        $message = "Failed to update settings.";
+        $message = "Failed to update settings. API Response: " . json_encode($res);
     }
 }
 

@@ -33,26 +33,29 @@ include 'includes/admin_header.php';
                             <td class="p-4 font-bold text-slate-800">Rp <?php echo number_format($o['total_price'], 0, ',', '.'); ?></td>
                             <td class="p-4">
                                 <?php
-                                    $statusLabel = $o['status'];
+                                    // Normalize status for comparison
+                                    $rawStatus = isset($o['status']) ? strtolower(trim($o['status'])) : '';
+                                    
+                                    $statusLabel = $o['status']; // Default to raw
                                     $statusClass = "bg-slate-100 text-slate-700";
                                     
-                                    if($o['status'] == 'pending') {
+                                    if($rawStatus == 'pending') {
                                         $statusClass = "bg-yellow-100 text-yellow-700";
-                                        $statusLabel = "Menunggu";
+                                        $statusLabel = "Menunggu Konfirmasi";
                                     }
-                                    if($o['status'] == 'confirmed') { // Legacy support
+                                    if($rawStatus == 'confirmed') {
                                         $statusClass = "bg-blue-100 text-blue-700";
-                                        $statusLabel = "Dikonfirmasi"; 
+                                        $statusLabel = "Memproses Pesanan"; 
                                     } 
-                                    if($o['status'] == 'shipping') {
+                                    if($rawStatus == 'shipping' || $rawStatus == 'shipped') {
                                         $statusClass = "bg-orange-100 text-orange-700";
-                                        $statusLabel = "Diantar";
+                                        $statusLabel = "Sedang Diantar";
                                     }
-                                    if($o['status'] == 'completed') {
+                                    if($rawStatus == 'completed') {
                                         $statusClass = "bg-green-100 text-green-700";
                                         $statusLabel = "Selesai";
                                     }
-                                    if($o['status'] == 'cancelled') {
+                                    if($rawStatus == 'cancelled') {
                                         $statusClass = "bg-red-100 text-red-700";
                                         $statusLabel = "Batal";
                                     }
@@ -60,18 +63,18 @@ include 'includes/admin_header.php';
                                 <span class="<?php echo $statusClass; ?> py-1 px-3 rounded-full text-xs font-bold uppercase">
                                     <?php echo $statusLabel; ?>
                                 </span>
-                                <div class="mt-2 flex gap-1">
-                                    <?php if($o['status'] == 'pending'): ?>
-                                        <button onclick="updateStatus(<?php echo $o['id']; ?>, 'shipping')" class="text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600">Konfirmasi Pesanan</button>
-                                        <button onclick="updateStatus(<?php echo $o['id']; ?>, 'cancelled')" class="text-xs bg-gray-500 text-white px-2 py-1 rounded hover:bg-gray-600">Batal</button>
+                                <div class="mt-2 flex gap-1 flex-wrap">
+                                    <?php if($rawStatus == 'pending' || $rawStatus == 'paid'): ?>
+                                        <a href="order_status_update.php?id=<?php echo $o['id']; ?>&status=confirmed" onclick="return confirm('Konfirmasi Pesanan ini?')" class="text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 inline-block">Konfirmasi Pesanan</a>
+                                        <a href="order_status_update.php?id=<?php echo $o['id']; ?>&status=cancelled" onclick="return confirm('Batalkan Pesanan ini?')" class="text-xs bg-gray-500 text-white px-2 py-1 rounded hover:bg-gray-600 inline-block">Batal</a>
                                     <?php endif; ?>
                                     
-                                    <?php if($o['status'] == 'confirmed'): // Fallback if exists ?>
-                                        <button onclick="updateStatus(<?php echo $o['id']; ?>, 'shipping')" class="text-xs bg-orange-500 text-white px-2 py-1 rounded hover:bg-orange-600">Antar Pesanan</button>
+                                    <?php if($rawStatus == 'confirmed'): ?>
+                                        <a href="order_status_update.php?id=<?php echo $o['id']; ?>&status=shipping" onclick="return confirm('Set status ke Diantar?')" class="text-xs bg-orange-500 text-white px-2 py-1 rounded hover:bg-orange-600 inline-block">Pesanan sedang diantar</a>
                                     <?php endif; ?>
 
-                                    <?php if($o['status'] == 'shipping'): ?>
-                                        <button onclick="updateStatus(<?php echo $o['id']; ?>, 'completed')" class="text-xs bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600">Pesanan Diterima</button>
+                                    <?php if($rawStatus == 'shipping' || $rawStatus == 'shipped'): ?>
+                                        <a href="order_status_update.php?id=<?php echo $o['id']; ?>&status=completed" onclick="return confirm('Selesaikan Pesanan ini?')" class="text-xs bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 inline-block">Pesanan Selesai</a>
                                     <?php endif; ?>
                                 </div>
                             </td>
