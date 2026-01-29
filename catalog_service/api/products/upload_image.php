@@ -5,7 +5,8 @@ header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: POST");
 
 if(isset($_FILES['product_image'])) {
-    $target_dir = "../../../frontend_main/assets/uploads/products/"; 
+    $project_root = dirname(dirname(dirname(__DIR__))); // c:\xampp\htdocs\NgulikPC
+    $target_dir = $project_root . "/frontend_main/assets/uploads/products/"; 
     if(!is_dir($target_dir)) mkdir($target_dir, 0777, true);
     
     $file_ext = strtolower(pathinfo($_FILES["product_image"]["name"], PATHINFO_EXTENSION));

@@ -44,7 +44,13 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         $payload['id'] = $_POST['id'];
         $res = $api->post('/catalog/products/update', $payload);
-        // ...
+        
+        if(isset($res['message']) && ($res['message'] == "Product updated.")) {
+             header('Location: products.php?success=Product+updated+successfully');
+             exit;
+        } else {
+             $error = "Failed to update product. " .(isset($res['message']) ? $res['message'] : '');
+        }
     } else {
         // Create Logic
          if(isset($_FILES['product_image']) && $_FILES['product_image']['error'] == 0) {
@@ -56,7 +62,13 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         $res = $api->post('/catalog/products/create', $payload);
-        // ...
+        
+        if(isset($res['message']) && ($res['message'] == "Product created." || strpos($res['message'], "created") !== false)) {
+             header('Location: products.php?success=Product+created+successfully');
+             exit;
+        } else {
+             $error = "Failed to create product. " .(isset($res['message']) ? $res['message'] : '');
+        }
     }
 }
 
@@ -81,7 +93,7 @@ include 'includes/admin_header.php';
             <input type="hidden" name="id" value="<?php echo $product['id']; ?>">
              <div class="flex items-center gap-4 mb-4">
                 <?php if(isset($product['images'][0])): ?>
-                    <img src="<?php echo $product['images'][0]; ?>" class="w-20 h-20 rounded-lg object-cover border border-slate-200">
+                    <img src="../frontend_main/<?php echo $product['images'][0]; ?>" class="w-20 h-20 rounded-lg object-cover border border-slate-200">
                 <?php endif; ?>
                 <div>
                      <label class="block font-bold mb-2 text-slate-700">Change Product Image</label>
@@ -112,7 +124,7 @@ include 'includes/admin_header.php';
                 <select name="category_id" class="w-full border border-slate-200 rounded-lg px-4 py-2 bg-slate-50 focus:border-primary outline-none">
                     <?php if($categories): ?>
                         <?php foreach($categories['records'] as $c): ?>
-                            <option value="<?php echo $c['id']; ?>" <?php if($product['category_id'] == $c['id']) echo 'selected'; ?>>
+                            <option value="<?php echo $c['id']; ?>" <?php if(isset($product['category_id']) && $product['category_id'] == $c['id']) echo 'selected'; ?>>
                                 <?php echo $c['name']; ?>
                             </option>
                         <?php endforeach; ?>

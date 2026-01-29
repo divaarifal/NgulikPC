@@ -38,14 +38,14 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Ensure Router maps /orders/create correctly. 
         // Previously in index.php case 'orders': mapped to /order_service/api/orders/... 
         // Let's use direct path to be safe in `api_client` or verify gateway
-        $result = $api->post('/orders/create', $orderData, $_SESSION['token']); // Gateway routing '/orders' -> 'order_service'
+        $result = $api->post('/orders/orders/create', $orderData, $_SESSION['token']); // Gateway routing '/orders' -> 'order_service'
 
         if(isset($result['order_id'])) {
             // Update Stocks
             foreach($_SESSION['cart'] as $item) {
                 // Read-Write safe logic
                 $currentStock = $api->get('/inventory/stock/read?product_id=' . $item['product_id']);
-                if($currentStock) {
+                if($currentStock && isset($currentStock['quantity'])) {
                     $newQty = $currentStock['quantity'] - $item['quantity'];
                     $api->post('/inventory/stock/update', ['product_id' => $item['product_id'], 'quantity' => $newQty]);
                 }

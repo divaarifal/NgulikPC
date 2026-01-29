@@ -27,9 +27,91 @@ include 'includes/header.php';
             </div>
         </div>
         <div class="w-full md:w-1/2 relative">
-             <!-- Placeholder for Hero Image/Slider -->
-             <?php if($banners && isset($banners['records']) && count($banners['records']) > 0): ?>
-                <img src="<?php echo $banners['records'][0]['image_url']; ?>" class="rounded-3xl shadow-2xl transform md:rotate-3 hover:rotate-0 transition duration-500">
+            <!-- Carousel -->
+             <?php
+                // Fetch Settings specifically for banners
+                // We'll reuse the $banners variable but populated from settings
+                // Or better, just fetch settings.
+                $settingsData = $api->get('/cms/settings/read');
+                $heroBanners = [];
+                if($settingsData && isset($settingsData['records'])) {
+                    foreach($settingsData['records'] as $row) {
+                        if(strpos($row['setting_key'], 'hero_banner_') !== false) {
+                           $heroBanners[] = $row['setting_value'];
+                        }
+                    }
+                }
+                // Sort or ensure order? keys are hero_banner_1, 2, 3. 
+                // The loop order depends on DB. We can trust array order or sort if strict.
+                // For now simple display is fine.
+             ?>
+             
+             <?php if(count($heroBanners) > 0): ?>
+                <div class="relative rounded-3xl overflow-hidden shadow-2xl h-[400px] group" id="heroCarousel">
+                    <div class="flex transition-transform duration-700 ease-in-out h-full" id="carouselSlides">
+                        <?php foreach($heroBanners as $bannerPath): ?>
+                            <div class="w-full h-full flex-shrink-0 relative">
+                                <img src="<?php echo $bannerPath; ?>" class="w-full h-full object-cover">
+                                <!-- Optional Overlay for text visibility if needed -->
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                    
+                    <!-- Controls -->
+                    <button onclick="prevSlide()" class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/30 backdrop-blur text-white p-3 rounded-full hover:bg-white hover:text-primary transition opacity-0 group-hover:opacity-100">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button onclick="nextSlide()" class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/30 backdrop-blur text-white p-3 rounded-full hover:bg-white hover:text-primary transition opacity-0 group-hover:opacity-100">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                    
+                    <!-- Indicators -->
+                    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                        <?php foreach($heroBanners as $index => $b): ?>
+                            <button onclick="goToSlide(<?php echo $index; ?>)" class="w-2 h-2 rounded-full bg-white/50 hover:bg-white transition indicator" data-index="<?php echo $index; ?>"></button>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+
+                <script>
+                    let currentSlide = 0;
+                    const slides = document.getElementById('carouselSlides');
+                    const indicators = document.querySelectorAll('.indicator');
+                    const totalSlides = <?php echo count($heroBanners); ?>;
+                    
+                    function updateCarousel() {
+                        slides.style.transform = `translateX(-${currentSlide * 100}%)`;
+                        indicators.forEach((ind, i) => {
+                            if(i === currentSlide) {
+                                ind.classList.remove('bg-white/50');
+                                ind.classList.add('bg-white', 'scale-125');
+                            } else {
+                                ind.classList.add('bg-white/50');
+                                ind.classList.remove('bg-white', 'scale-125');
+                            }
+                        });
+                    }
+                    
+                    function nextSlide() {
+                        currentSlide = (currentSlide + 1) % totalSlides;
+                        updateCarousel();
+                    }
+                    
+                    function prevSlide() {
+                        currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+                        updateCarousel();
+                    }
+                    
+                    function goToSlide(index) {
+                        currentSlide = index;
+                        updateCarousel();
+                    }
+                    
+                    // Auto Play
+                    setInterval(nextSlide, 5000);
+                    updateCarousel(); // Init
+                </script>
              <?php else: ?>
                 <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl h-[400px] flex items-center justify-center text-white shadow-2xl">
                     <h2 class="text-2xl font-bold">Latest Tech Arrived</h2>

@@ -1,0 +1,14 @@
+User: 1 - Target: C:\xampp\htdocs\NgulikPC/frontend_main/assets/uploads/avatars/ - Files: Array
+(
+    [avatar_image] => Array
+        (
+            [name] => 623404197_1968383240774380_8776539459997383275_n.jpg
+            [full_path] => 623404197_1968383240774380_8776539459997383275_n.jpg
+            [type] => image/jpeg
+            [tmp_name] => C:\xampp\tmp\php8C6B.tmp
+            [error] => 0
+            [size] => 37407
+        )
+
+)
+

@@ -41,7 +41,7 @@
             
             <nav class="hidden md:flex items-center space-x-8">
                 <a href="index.php" class="text-slate-600 hover:text-primary font-medium transition">Home</a>
-                <a href="products.php" class="text-slate-600 hover:text-primary font-medium transition">Catalog</a>
+                <a href="products.php" class="text-slate-600 hover:text-primary font-medium transition">Store</a>
                 <a href="cart.php" class="text-slate-600 hover:text-primary font-medium transition relative">
                     <i class="fas fa-shopping-cart text-lg"></i>
                     <?php if(isset($_SESSION['cart']) && count($_SESSION['cart']) > 0): ?>
@@ -59,6 +59,7 @@
                             <i class="fas fa-chevron-down text-xs text-slate-400 Transition-transform duration-200" id="dropdownIcon"></i>
                          </button>
                          <div id="userDropdown" class="absolute hidden right-0 mt-2 w-48 bg-white border border-slate-100 rounded-xl shadow-lg py-2 z-50 animate-fade-in-down">
+                             <a href="order_history.php" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-primary"><i class="fas fa-shopping-bag mr-2"></i>My Orders</a>
                              <a href="profile.php" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-primary"><i class="fas fa-user-cog mr-2"></i>Settings</a>
                              <a href="logout.php" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50"><i class="fas fa-sign-out-alt mr-2"></i>Logout</a>
                          </div>

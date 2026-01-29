@@ -13,6 +13,13 @@ include 'includes/admin_header.php';
     <a href="product_form.php" class="bg-primary text-white px-6 py-2 rounded-lg font-bold shadow hover:bg-red-600 transition"><i class="fas fa-plus mr-2"></i> Add Product</a>
 </div>
 
+<?php if(isset($_GET['success'])): ?>
+    <div class="bg-green-100 text-green-700 p-4 rounded-xl mb-6 shadow-sm flex justify-between items-center">
+        <span><i class="fas fa-check-circle mr-2"></i> <?php echo htmlspecialchars($_GET['success']); ?></span>
+        <button onclick="this.parentElement.remove()" class="text-green-800 hover:text-green-900"><i class="fas fa-times"></i></button>
+    </div>
+<?php endif; ?>
+
 <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
     <table class="w-full text-left border-collapse">
         <thead class="bg-slate-50 border-b border-slate-100 text-slate-500 uppercase text-xs">
@@ -29,7 +36,7 @@ include 'includes/admin_header.php';
                 <?php foreach($products['records'] as $p): ?>
                     <tr class="hover:bg-slate-50 transition">
                         <td class="p-4">
-                             <img src="<?php echo (isset($p['images'][0]) ? $p['images'][0] : '../frontend_main/assets/images/placeholder_gpu.png'); ?>" class="w-12 h-12 rounded-lg object-cover">
+                             <img src="<?php echo (isset($p['images'][0]) ? '../frontend_main/' . $p['images'][0] : '../frontend_main/assets/images/placeholder_gpu.png'); ?>" class="w-12 h-12 rounded-lg object-cover">
                         </td>
                         <td class="p-4 font-bold text-slate-800"><?php echo $p['name']; ?></td>
                         <td class="p-4 text-slate-600 font-medium">Rp <?php echo number_format($p['price'], 0, ',', '.'); ?></td>

@@ -38,7 +38,11 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['a
              $_SESSION['user']['avatar'] = $up_res['path'];
              $user['avatar'] = $up_res['path']; // Update local var for display
              $success = "Avatar updated. ";
+         } else {
+             $error = "Avatar upload failed: " . (isset($up_res['message']) ? $up_res['message'] : 'Unknown error');
          }
+    } elseif(isset($_FILES['avatar_image']) && $_FILES['avatar_image']['error'] != 0) {
+        $error = "File upload error code: " . $_FILES['avatar_image']['error'];
     }
 
     // In real app, call /auth/update API for other fields
@@ -104,6 +108,9 @@ include 'includes/header.php';
 
                 <?php if($success): ?>
                     <div class="bg-green-100 text-green-700 p-3 rounded-lg mb-4 text-sm"><?php echo $success; ?></div>
+                <?php endif; ?>
+                <?php if($error): ?>
+                    <div class="bg-red-100 text-red-700 p-3 rounded-lg mb-4 text-sm"><?php echo $error; ?></div>
                 <?php endif; ?>
 
                 <!-- Add Form -->

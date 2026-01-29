@@ -12,6 +12,30 @@ if($search) $query .= "search=" . $search;
 $products = $api->get('/catalog/products/read' . $query);
 $categories = $api->get('/catalog/categories/read');
 
+// Extract Brands & Filter by Brand Logic
+$brands = [];
+$filtered_records = [];
+
+if($products && isset($products['records'])) {
+    foreach($products['records'] as $p) {
+        if(isset($p['brand']) && !empty($p['brand'])) {
+            $b = $p['brand'];
+            if(!in_array($b, $brands)) $brands[] = $b;
+        }
+        
+        // Filter logic
+        if(isset($_GET['brand']) && !empty($_GET['brand'])) {
+             if(isset($p['brand']) && $p['brand'] == $_GET['brand']) {
+                 $filtered_records[] = $p;
+             }
+        } else {
+            $filtered_records[] = $p;
+        }
+    }
+    // Update products records to filtered list
+    $products['records'] = $filtered_records;
+}
+
 include 'includes/header.php';
 ?>
 
@@ -37,8 +61,25 @@ include 'includes/header.php';
                             </a>
                         </li>
                     <?php endforeach; ?>
+
                 <?php endif; ?>
             </ul>
+
+            <h3 class="font-bold text-lg mt-8 mb-4 text-slate-800">Brands</h3>
+             <ul class="space-y-2">
+                <li>
+                    <a href="products.php" class="block text-sm <?php echo (!isset($_GET['brand']) || $_GET['brand'] == '') ? 'text-primary font-bold' : 'text-slate-500 hover:text-primary' ?> transition">
+                        All Brands
+                    </a>
+                </li>
+                <?php foreach($brands as $b): ?>
+                    <li>
+                         <a href="products.php?brand=<?php echo urlencode($b); ?><?php echo $category_slug ? '&category='.$category_slug : ''; ?>" class="block text-sm <?php echo (isset($_GET['brand']) && $_GET['brand'] == $b) ? 'text-primary font-bold' : 'text-slate-500 hover:text-primary' ?> transition">
+                            <?php echo $b; ?>
+                        </a>
+                    </li>
+                <?php endforeach; ?>
+             </ul>
         </form>
     </aside>
 
@@ -67,7 +108,12 @@ include 'includes/header.php';
 
                         <!-- Body -->
                         <div class="p-6">
-                            <div class="text-xs font-bold text-primary uppercase tracking-wider mb-2"><?php echo $p['category_name']; ?></div>
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="text-xs font-bold text-primary uppercase tracking-wider"><?php echo $p['category_name']; ?></div>
+                                <?php if(isset($p['brand'])): ?>
+                                    <span class="text-xs text-slate-400 font-bold uppercase"><?php echo $p['brand']; ?></span>
+                                <?php endif; ?>
+                            </div>
                             <h3 class="font-bold text-lg text-slate-800 mb-2 truncate"><?php echo $p['name']; ?></h3>
                             <div class="flex justify-between items-center">
                                 <span class="text-xl font-bold text-slate-800">Rp <?php echo number_format($p['price'], 0, ',', '.'); ?></span>
@@ -110,7 +156,12 @@ include 'includes/header.php';
             <h2 id="modalName" class="text-3xl font-bold text-slate-900 mt-2 mb-4 leading-tight"></h2>
             <div id="modalPrice" class="text-2xl font-bold text-slate-800 mb-6"></div>
             
-            <p id="modalDesc" class="text-slate-500 leading-relaxed mb-8 text-sm line-clamp-4"></p>
+            <p id="modalDesc" class="text-slate-500 leading-relaxed mb-6 text-sm line-clamp-4"></p>
+
+            <div class="mb-4">
+                <span class="text-sm font-bold text-slate-700">Stock: </span>
+                <span id="modalStock" class="text-sm text-slate-500">Checking...</span>
+            </div>
 
             <form action="cart.php" method="POST" class="flex gap-4">
                 <input type="hidden" name="action" value="add">
@@ -118,9 +169,9 @@ include 'includes/header.php';
                 <input type="hidden" id="modalNameInput" name="name">
                 <input type="hidden" id="modalPriceInput" name="price">
                 
-                <input type="number" name="quantity" value="1" min="1" class="w-20 bg-slate-50 border border-slate-200 rounded-lg text-center font-bold focus:outline-none focus:border-primary">
+                <input type="number" id="modalQty" name="quantity" value="1" min="1" class="w-20 bg-slate-50 border border-slate-200 rounded-lg text-center font-bold focus:outline-none focus:border-primary">
                 
-                <button type="submit" class="flex-1 bg-primary text-white font-bold py-3 rounded-xl shadow-lg shadow-red-500/30 hover:bg-red-600 transition flex items-center justify-center gap-2">
+                <button type="submit" id="modalSubmit" class="flex-1 bg-primary text-white font-bold py-3 rounded-xl shadow-lg shadow-red-500/30 hover:bg-red-600 transition flex items-center justify-center gap-2">
                     <i class="fas fa-shopping-cart"></i> Buy Now
                 </button>
             </form>
@@ -141,6 +192,51 @@ include 'includes/header.php';
         document.getElementById('modalId').value = product.id;
         document.getElementById('modalNameInput').value = product.name;
         document.getElementById('modalPriceInput').value = product.price;
+
+        // Reset and Fetch Stock
+        const stockEl = document.getElementById('modalStock');
+        const submitBtn = document.getElementById('modalSubmit');
+        const qtyInput = document.getElementById('modalQty');
+        
+        stockEl.textContent = 'Checking...';
+        stockEl.className = 'text-sm text-slate-500';
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+        // Use relative path which is safer for standard directory structure
+        fetch('../api_gateway/index.php/inventory/stock/read?product_id=' + product.id)
+            .then(response => {
+                if(!response.ok) {
+                    console.error("Stock API Error:", response.status);
+                    return {available: 0}; 
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Ensure available is a number
+                let qty = (data && typeof data.available !== 'undefined') ? parseInt(data.available) : 0;
+                
+                stockEl.textContent = qty + ' items available';
+                
+                if(qty > 0) {
+                    stockEl.className = 'text-sm text-green-600 font-bold';
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    qtyInput.max = qty;
+                } else {
+                    stockEl.textContent = 'Out of Stock (0 items)';
+                    stockEl.className = 'text-sm text-red-600 font-bold';
+                    // Keep disabled
+                }
+            })
+            .catch(err => {
+                console.error("Stock check failed:", err);
+                stockEl.textContent = 'Stock Check Failed';
+                // Fail safe: enable or disable? User wants to see stock. 
+                // If check fails, maybe allow default order (backorder)? 
+                // Or stick to disabled to prevent errors.
+                // Let's stick to showing error text.
+            });
     }
 
     function closeModal() {

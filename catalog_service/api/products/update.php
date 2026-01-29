@@ -16,11 +16,16 @@ if(!empty($data->id)){
         price=:price, 
         description=:description, 
         category_id=:category_id, 
-        brand=:brand
-        WHERE id=:id";
+        brand=:brand";
 
-    // Note: Not updating slug/images/specs for simplicity in V1.1 unless provided
-    // In a real app we'd handle all fields. 
+    // Conditionally update images only if provided
+    if(isset($data->images)) {
+        $query .= ", images=:images";
+    }
+
+    $query .= " WHERE id=:id";
+
+    // Note: Not updating slug/specs for simplicity in V1.1 unless provided
     
     $stmt = $db->prepare($query);
 
@@ -30,6 +35,11 @@ if(!empty($data->id)){
     $stmt->bindParam(":category_id", $data->category_id);
     $stmt->bindParam(":brand", $data->brand);
     $stmt->bindParam(":id", $data->id);
+
+    if(isset($data->images)){
+        $images = json_encode($data->images);
+        $stmt->bindParam(":images", $images);
+    }
 
     if($stmt->execute()){
         http_response_code(200);

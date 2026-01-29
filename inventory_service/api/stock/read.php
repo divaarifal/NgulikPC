@@ -9,20 +9,24 @@ $db = $database->getConnection();
 
 $product_id = isset($_GET['product_id']) ? $_GET['product_id'] : die();
 
-$query = "SELECT quantity, reserved FROM stocks WHERE product_id = ? LIMIT 0,1";
+$query = "SELECT SUM(quantity) as total_qty, SUM(reserved) as total_res FROM stocks WHERE product_id = ?";
 $stmt = $db->prepare($query);
 $stmt->bindParam(1, $product_id);
 $stmt->execute();
 
 if($stmt->rowCount() > 0){
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    $available = $row['quantity'] - $row['reserved'];
+    // If no rows found, sum is null. Handle that.
+    $qty = $row['total_qty'] ? $row['total_qty'] : 0;
+    $res = $row['total_res'] ? $row['total_res'] : 0;
+    
+    $available = $qty - $res;
     
     http_response_code(200);
     echo json_encode(array(
         "product_id" => $product_id,
-        "quantity" => $row['quantity'],
-        "reserved" => $row['reserved'],
+        "quantity" => $qty,
+        "reserved" => $res,
         "available" => $available
     ));
 } else {

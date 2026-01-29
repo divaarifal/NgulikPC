@@ -9,7 +9,8 @@ $database = new Database();
 $db = $database->getConnection();
 
 if(isset($_FILES['banner_image'])) {
-    $target_dir = "../../../frontend_main/assets/uploads/banners/"; // Check correct relative path
+    $project_root = dirname(dirname(dirname(__DIR__))); // c:\xampp\htdocs\NgulikPC
+    $target_dir = $project_root . "/frontend_main/assets/uploads/banners/"; 
     // cms_service/api/banners/ -> ../../../ -> NgulikPC/ -> frontend_main/...
     if(!is_dir($target_dir)) mkdir($target_dir, 0777, true);
     

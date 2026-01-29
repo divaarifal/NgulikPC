@@ -21,6 +21,11 @@ if($path == $clean_uri) {
     $path = str_ireplace('/NgulikPC/api_gateway', '', $clean_uri);
 }
 
+// Remove trailing index.php or starting index.php if present (e.g. if accessed via /index.php/service)
+if (strpos($path, '/index.php') === 0) {
+    $path = substr($path, 10); // remove /index.php
+}
+
 $parts = explode('/', trim($path, '/'));
 
 $service = isset($parts[0]) ? $parts[0] : '';
@@ -75,12 +80,36 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $_SERVER['REQUEST_METHOD']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'PUT') {
-    $input_data = file_get_contents("php://input");
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $input_data);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Content-Type: application/json',
-        'Content-Length: ' . strlen($input_data)
-    ]);
+    $contentType = isset($_SERVER['CONTENT_TYPE']) ? $_SERVER['CONTENT_TYPE'] : '';
+    
+    if (stripos($contentType, 'multipart/form-data') !== false) {
+        // Handle Multipart Forwarding
+        $postFields = $_POST;
+        
+        if (!empty($_FILES)) {
+            foreach ($_FILES as $key => $file) {
+                // Skip if error
+                if ($file['error'] != UPLOAD_ERR_OK) continue;
+                
+                $postFields[$key] = new CURLFile(
+                    $file['tmp_name'],
+                    $file['type'],
+                    $file['name']
+                );
+            }
+        }
+        
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postFields);
+        // Do NOT set Content-Type header manually for multipart, cURL does it with boundary
+    } else {
+        // Handle JSON/Raw Body
+        $input_data = file_get_contents("php://input");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $input_data);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json',
+            'Content-Length: ' . strlen($input_data)
+        ]);
+    }
 }
 
 $response = curl_exec($ch);
